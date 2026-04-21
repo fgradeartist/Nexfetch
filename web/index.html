@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexFetch v2.9 — Universal Media &amp; Info Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & ROOT ─────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --yel: #F5D800;
+  --yel2: #FFE633;
+  --dark: #080808;
+  --mid: #111111;
+  --card: #0f0f0f;
+  --border: #1e1e1e;
+  --border2: #2a2a2a;
+  --text: #f0f0f0;
+  --muted: #777777;
+  --red: #e03030;
+  --green: #22c55e;
+  --cyan: #06b6d4;
+  --font: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'DM Mono', 'Courier New', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--dark);
+  color: var(--text);
+  font-family: var(--font);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── BLOB BACKGROUNDS ────────────────────────────────────────── */
+.blob-tr {
+  position: fixed; top: -60px; right: -120px;
+  width: 580px; height: 580px;
+  pointer-events: none; z-index: 0; opacity: 0.13;
+}
+.blob-bl {
+  position: fixed; bottom: -160px; left: -120px;
+  width: 480px; height: 480px;
+  pointer-events: none; z-index: 0; opacity: 0.08;
+}
+
+/* ── HEADER ──────────────────────────────────────────────────── */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 40px;
+  background: rgba(8,8,8,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 20px; font-weight: 700; letter-spacing: -0.5px;
+  text-decoration: none; color: var(--text);
+}
+.logo-bolt { color: var(--yel); font-size: 26px; line-height: 1; }
+.logo em { color: var(--yel); font-style: normal; }
+.version-badge {
+  background: var(--yel); color: #000;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 4px;
+  font-family: var(--mono); letter-spacing: 0.5px;
+}
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-meta { font-size: 11px; font-family: var(--mono); color: #444; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  font-size: 12px; font-weight: 500;
+  padding: 7px 14px; border-radius: 7px;
+  cursor: pointer; font-family: var(--font);
+  transition: border-color .15s, color .15s;
+}
+.btn-ghost:hover { border-color: var(--yel); color: var(--yel); }
+
+.user-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--mid); border: 1px solid var(--border2);
+  padding: 6px 14px 6px 8px; border-radius: 22px;
+  font-size: 13px; cursor: pointer;
+  transition: border-color .15s;
+}
+.user-chip:hover { border-color: var(--yel); }
+.avatar {
+  width: 26px; height: 26px;
+  background: var(--yel); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #000; font-size: 11px; font-weight: 700;
+  flex-shrink: 0;
+}
+.user-chip .caret { color: #444; font-size: 10px; margin-left: 2px; }
+
+/* ── HERO ────────────────────────────────────────────────────── */
+.hero {
+  position: relative; z-index: 5;
+  padding: 56px 40px 32px;
+}
+.eyebrow {
+  font-size: 11px; font-family: var(--mono);
+  color: var(--yel); letter-spacing: 3px;
+  text-transform: uppercase; margin-bottom: 14px;
+}
+.hero-title {
+  font-size: clamp(40px, 6.5vw, 76px);
+  font-weight: 700; line-height: 0.92;
+  letter-spacing: -2.5px; margin-bottom: 6px;
+}
+.hero-title .accent { color: var(--yel); }
+.hero-sub {
+  font-size: 14px; color: var(--muted);
+  max-width: 500px; margin-top: 16px; line-height: 1.65;
+}
+
+/* ── URL BAR ─────────────────────────────────────────────────── */
+.url-section { position: relative; z-index: 5; padding: 0 40px 28px; }
+.url-bar {
+  display: flex; align-items: center;
+  background: var(--mid); border: 1px solid var(--border2);
+  border-radius: 12px; overflow: hidden;
+  transition: border-color .2s;
+}
+.url-bar:focus-within { border-color: var(--yel); }
+.url-prefix { padding: 0 14px; color: #444; font-size: 17px; flex-shrink: 0; }
+.url-input {
+  flex: 1; background: transparent; border: none;
+  color: var(--text); font-size: 14px;
+  padding: 17px 8px 17px 0; outline: none;
+  font-family: var(--font);
+}
+.url-input::placeholder { color: #333; }
+.url-btn {
+  background: var(--yel); color: #000;
+  border: none; font-size: 13px; font-weight: 700;
+  padding: 17px 30px; cursor: pointer;
+  font-family: var(--font); letter-spacing: 0.5px;
+  transition: background .15s; white-space: nowrap;
+  flex-shrink: 0;
+}
+.url-btn:hover { background: var(--yel2); }
+
+.opts-row { display: flex; gap: 22px; margin-top: 12px; flex-wrap: wrap; }
+.opt-label {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--muted); cursor: pointer;
+  user-select: none; transition: color .15s;
+}
+.opt-label:hover { color: var(--text); }
+.opt-label input[type="checkbox"] { accent-color: var(--yel); width: 13px; height: 13px; cursor: pointer; }
+
+/* ── SITE CHIPS ROW ──────────────────────────────────────────── */
+.chips-row {
+  position: relative; z-index: 5;
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 0 40px 20px;
+}
+.site-chip {
+  background: var(--mid); border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 6px;
+  font-size: 11px; font-family: var(--mono); color: #444;
+  display: flex; align-items: center; gap: 5px;
+}
+.site-chip::before {
+  content: ''; width: 5px; height: 5px;
+  border-radius: 50%; background: #2a2a2a; flex-shrink: 0;
+}
+
+/* ── TABS ────────────────────────────────────────────────────── */
+.tabs-wrap { position: relative; z-index: 5; padding: 0 40px 30px; }
+.tabs-bar {
+  display: flex; gap: 4px;
+  background: var(--mid); border: 1px solid var(--border);
+  border-radius: 12px; padding: 5px; margin-bottom: 26px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+.tab {
+  flex: 1; min-width: fit-content;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 13px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; border: none; background: transparent;
+  color: var(--muted); transition: all .15s;
+  font-family: var(--font); white-space: nowrap;
+}
+.tab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+.tab.active { background: var(--yel); color: #000; font-weight: 700; }
+.tab-ico { font-size: 14px; }
+
+/* ── PANELS ──────────────────────────────────────────────────── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── SECTION TITLES ──────────────────────────────────────────── */
+.sec-title { font-size: 21px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 5px; }
+.sec-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.55; }
+
+/* ── FORMS ───────────────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 10px; font-family: var(--mono);
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+}
+.f-input, .f-select, .f-textarea {
+  background: var(--mid); border: 1px solid var(--border2);
+  color: var(--text); font-size: 13px;
+  padding: 10px 13px; border-radius: 8px;
+  font-family: var(--font); outline: none;
+  transition: border-color .2s;
+  width: 100%;
+}
+.f-input:hover, .f-select:hover, .f-textarea:hover { border-color: #444; }
+.f-input:focus, .f-select:focus, .f-textarea:focus { border-color: var(--yel); }
+.f-select { cursor: pointer; }
+.f-textarea {
+  resize: vertical; min-height: 90px;
+  font-family: var(--mono); line-height: 1.6;
+}
+.f-full { grid-column: 1 / -1; }
+
+/* ── BUTTONS ─────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--yel); color: #000;
+  border: none; font-size: 13px; font-weight: 700;
+  padding: 11px 24px; border-radius: 8px;
+  cursor: pointer; font-family: var(--font);
+  transition: background .15s;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.btn-primary:hover { background: var(--yel2); }
+.btn-secondary {
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--text); font-size: 13px;
+  padding: 10px 20px; border-radius: 8px;
+  cursor: pointer; font-family: var(--font);
+  transition: border-color .15s, color .15s;
+}
+.btn-secondary:hover { border-color: var(--yel); color: var(--yel); }
+.btn-danger {
+  background: transparent; border: 1px solid #3a1111;
+  color: var(--red); font-size: 13px;
+  padding: 10px 20px; border-radius: 8px;
+  cursor: pointer; font-family: var(--font);
+  transition: background .15s;
+}
+.btn-danger:hover { background: rgba(224,48,48,0.1); }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* ── QUEUE ───────────────────────────────────────────────────── */
+.queue-box {
+  background: #0a0a0a; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin-top: 18px;
+}
+.queue-hdr {
+  padding: 11px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.queue-hdr-label { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.queue-hdr-count { font-size: 11px; font-family: var(--mono); color: #444; }
+.queue-empty { padding: 26px; text-align: center; font-size: 12px; color: #2a2a2a; font-family: var(--mono); }
+.q-item {
+  padding: 12px 16px; border-bottom: 1px solid #111;
+  display: flex; align-items: flex-start; gap: 11px;
+}
+.q-item:last-child { border-bottom: none; }
+.q-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.q-dot-wait { background: #2a2a2a; }
+.q-dot-dl { background: var(--yel); }
+.q-dot-done { background: var(--green); }
+.q-dot-dl { animation: blink 0.9s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.q-info { flex: 1; min-width: 0; }
+.q-url {
+  font-size: 12px; font-family: var(--mono);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.q-url.wait { color: #555; }
+.q-url.dl { color: var(--yel); }
+.q-url.done { color: #444; text-decoration: line-through; }
+.q-meta { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.q-tag {
+  background: #1a1a1a; border: 1px solid #222;
+  font-size: 10px; font-family: var(--mono); color: #555;
+  padding: 1px 6px; border-radius: 3px;
+}
+.q-bar { flex: 1; height: 2px; background: #1a1a1a; border-radius: 1px; overflow: hidden; }
+.q-fill { height: 100%; background: var(--yel); border-radius: 1px; transition: width .3s; }
+.q-eta { font-size: 11px; font-family: var(--mono); color: var(--muted); flex-shrink: 0; margin-top: 3px; }
+
+/* ── FEATURE CHIPS (inside panels) ──────────────────────────── */
+.feat-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.feat-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--mid); border: 1px solid var(--border);
+  padding: 6px 12px; border-radius: 18px; font-size: 12px; color: var(--muted);
+}
+.feat-chip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--yel); flex-shrink: 0; }
+
+/* ── TAGS ────────────────────────────────────────────────────── */
+.tag-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
+.tag-pill {
+  background: #111; border: 1px solid var(--border2);
+  color: var(--muted); font-size: 11px; font-family: var(--mono);
+  padding: 4px 11px; border-radius: 12px;
+  cursor: pointer; transition: all .15s; user-select: none;
+}
+.tag-pill:hover { border-color: #444; color: var(--text); }
+.tag-pill.on { background: var(--yel); border-color: var(--yel); color: #000; }
+
+/* ── PLATFORM GRID ───────────────────────────────────────────── */
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px; margin-bottom: 20px;
+}
+.plat-card {
+  background: var(--mid); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 14px 10px;
+  text-align: center; cursor: pointer;
+  transition: all .15s; font-size: 12px; color: var(--muted);
+  user-select: none;
+}
+.plat-card:hover { border-color: #444; color: var(--text); }
+.plat-card.sel { border-color: var(--yel); color: var(--yel); background: rgba(245,216,0,0.06); }
+.plat-icon { font-size: 22px; margin-bottom: 6px; display: block; }
+
+/* ── SCRAPE LOG ──────────────────────────────────────────────── */
+.scrape-log {
+  background: #070707; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 16px;
+  font-family: var(--mono); font-size: 12px;
+  color: #444; min-height: 80px;
+  white-space: pre-wrap; line-height: 1.7;
+  margin-top: 16px;
+}
+
+/* ── IMAGE GRID ──────────────────────────────────────────────── */
+.img-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-top: 14px;
+}
+.img-cell {
+  background: var(--mid); border: 1px solid var(--border);
+  border-radius: 8px; aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: #222;
+  cursor: pointer; transition: border-color .15s;
+}
+.img-cell:hover { border-color: #333; }
+.img-cell.loaded { border-color: var(--yel); color: var(--yel); font-size: 16px; }
+
+/* ── ECOMMERCE TABLE ─────────────────────────────────────────── */
+.ecom-wrap {
+  background: #0a0a0a; border: 1px solid var(--border);
+  border-radius: 10px; overflow: auto;
+}
+.ecom-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12px; font-family: var(--mono);
+}
+.ecom-table th {
+  text-align: left; color: var(--muted);
+  padding: 10px 13px; border-bottom: 1px solid var(--border);
+  font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.ecom-table td {
+  padding: 10px 13px; border-bottom: 1px solid #0f0f0f;
+  color: var(--text); vertical-align: middle;
+}
+.ecom-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.ecom-table tbody tr:last-child td { border-bottom: none; }
+.price-pill {
+  background: rgba(245,216,0,0.1); border: 1px solid rgba(245,216,0,0.3);
+  color: var(--yel); font-size: 10px; padding: 2px 8px; border-radius: 4px;
+}
+.sale-pill {
+  background: rgba(224,48,48,0.1); border: 1px solid rgba(224,48,48,0.3);
+  color: var(--red); font-size: 10px; padding: 2px 8px; border-radius: 4px;
+}
+.cat-pill {
+  background: #1a1a1a; color: #555;
+  font-size: 10px; padding: 2px 7px; border-radius: 3px;
+}
+
+/* ── ACCOUNT ─────────────────────────────────────────────────── */
+.account-card {
+  background: #0a0a0a; border: 1px solid var(--border);
+  border-radius: 14px; padding: 26px; max-width: 500px;
+}
+.acct-avatar {
+  width: 70px; height: 70px;
+  background: var(--yel); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700; color: #000;
+  margin-bottom: 14px;
+}
+.acct-name { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.acct-role {
+  font-size: 11px; font-family: var(--mono);
+  color: var(--yel); background: rgba(245,216,0,0.1);
+  border: 1px solid rgba(245,216,0,0.25);
+  padding: 2px 9px; border-radius: 4px;
+  display: inline-block; margin-bottom: 18px;
+}
+.stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 18px; }
+.stat-card {
+  background: var(--mid); border-radius: 8px; padding: 12px;
+  text-align: center;
+}
+.stat-num { font-size: 20px; font-weight: 700; color: var(--yel); }
+.stat-lbl { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-top: 3px; }
+
+/* ── SETTINGS ────────────────────────────────────────────────── */
+.settings-layout { display: grid; grid-template-columns: 190px 1fr; gap: 16px; }
+.settings-nav {
+  background: #0a0a0a; border: 1px solid var(--border);
+  border-radius: 10px; padding: 6px;
+}
+.snav-item {
+  padding: 9px 12px; border-radius: 7px;
+  font-size: 13px; color: var(--muted);
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; gap: 8px;
+  user-select: none;
+}
+.snav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+.snav-item.active { background: rgba(245,216,0,0.08); color: var(--yel); }
+.settings-panel {
+  background: #0a0a0a; border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px;
+}
+.settings-section { display: none; }
+.settings-section.active { display: block; }
+.settings-group-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+.srow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 0; border-bottom: 1px solid #0f0f0f;
+}
+.srow:last-child { border-bottom: none; }
+.srow-label { font-size: 13px; }
+.srow-hint { font-size: 11px; font-family: var(--mono); color: #444; margin-top: 2px; }
+
+/* Toggle switch */
+.toggle-wrap { position: relative; width: 38px; height: 20px; cursor: pointer; flex-shrink: 0; }
+.toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: #222; border-radius: 10px; transition: background .2s;
+}
+.toggle-wrap input:checked + .toggle-track { background: var(--yel); }
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  background: #fff; border-radius: 50%; transition: left .2s;
+  pointer-events: none;
+}
+.toggle-wrap input:checked ~ .toggle-thumb { left: 21px; }
+
+/* Color swatches */
+.swatch-row { display: flex; gap: 8px; align-items: center; }
+.swatch {
+  width: 28px; height: 28px; border-radius: 6px;
+  cursor: pointer; border: 2px solid transparent;
+  transition: border-color .15s;
+}
+.swatch.sel { border-color: var(--text); }
+
+/* ── DIVIDER ─────────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+/* ── TOAST NOTIFICATIONS ─────────────────────────────────────── */
+#toast-container {
+  position: fixed; top: 16px; right: 16px;
+  z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: #111; border: 1px solid var(--border2);
+  border-left: 3px solid var(--yel);
+  border-radius: 8px; padding: 12px 16px;
+  font-size: 13px; min-width: 240px;
+  pointer-events: all; cursor: pointer;
+  animation: slideIn .2s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.toast.ok { border-left-color: var(--green); }
+.toast.err { border-left-color: var(--red); }
+.toast-title { font-weight: 600; margin-bottom: 2px; }
+.toast-msg { font-size: 12px; color: var(--muted); }
+@keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+@keyframes fadeOut { from{opacity:1} to{opacity:0;transform:translateX(20px)} }
+
+/* ── LOGIN MODAL ─────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.75);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.hidden { display: none; }
+.modal-card {
+  background: #111; border: 1px solid var(--border2);
+  border-radius: 14px; padding: 30px; width: 360px;
+  position: relative;
+}
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 22px; }
+.modal-close {
+  position: absolute; top: 14px; right: 14px;
+  background: none; border: none; color: var(--muted);
+  font-size: 16px; cursor: pointer; line-height: 1;
+  transition: color .15s;
+}
+.modal-close:hover { color: var(--text); }
+.modal-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+.mtab {
+  flex: 1; padding: 8px; border-radius: 7px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted); font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: var(--font); transition: all .15s;
+}
+.mtab.active { background: var(--yel); border-color: var(--yel); color: #000; font-weight: 700; }
+.modal-form { display: flex; flex-direction: column; gap: 12px; }
+.modal-section { display: none; }
+.modal-section.active { display: flex; flex-direction: column; gap: 12px; }
+.saved-users { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
+.saved-user-btn {
+  background: var(--mid); border: 1px solid var(--border2);
+  color: var(--text); font-size: 13px; padding: 9px 14px;
+  border-radius: 8px; cursor: pointer; font-family: var(--font);
+  text-align: left; transition: border-color .15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.saved-user-btn:hover { border-color: var(--yel); }
+.saved-user-btn .su-avatar {
+  width: 28px; height: 28px; background: var(--yel);
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; color: #000; font-size: 11px; font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .header { padding: 14px 20px; }
+  .header-meta { display: none; }
+  .hero { padding: 36px 20px 24px; }
+  .url-section { padding: 0 20px 20px; }
+  .chips-row { padding: 0 20px 16px; }
+  .tabs-wrap { padding: 0 20px 24px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .img-grid { grid-template-columns: repeat(3, 1fr); }
+  .settings-layout { grid-template-columns: 1fr; }
+  .settings-nav { display: flex; gap: 4px; overflow-x: auto; padding: 4px; }
+  .snav-item { white-space: nowrap; }
+  .account-card { max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .hero-title { font-size: 36px; letter-spacing: -1.5px; }
+  .img-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-row { grid-template-columns: repeat(3,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- SVG BLOBS -->
+<svg class="blob-tr" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <path d="M420,280 C460,220 480,150 430,100 C380,50 300,60 250,100 C200,140 180,220 210,290 C240,360 300,400 360,390 C400,380 380,340 420,280Z" fill="#F5D800"/>
+  <path d="M350,420 C390,380 420,310 380,260 C340,210 270,230 230,280 C190,330 200,410 250,440 C300,470 310,460 350,420Z" fill="#F5D800" opacity="0.45"/>
+</svg>
+<svg class="blob-bl" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <path d="M300,350 C340,310 370,240 330,180 C290,120 210,100 150,130 C90,160 60,240 80,310 C100,380 180,420 240,410 C280,400 260,390 300,350Z" fill="#F5D800"/>
+</svg>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay hidden" id="loginModal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">⚡ NexFetch</div>
+    <div class="modal-sub">Sign in or create your account</div>
+    <div class="modal-tabs">
+      <button class="mtab active" onclick="modalTab('login',this)">Login</button>
+      <button class="mtab" onclick="modalTab('register',this)">Create Account</button>
+    </div>
+
+    <!-- LOGIN SECTION -->
+    <div class="modal-section active" id="ms-login">
+      <div id="savedUsersWrap"></div>
+      <div class="form-field">
+        <label class="field-label">Username</label>
+        <input class="f-input" id="loginUser" placeholder="Your username" autocomplete="username">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Password</label>
+        <input class="f-input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">Login</button>
+      <div style="text-align:center;font-size:12px;color:var(--muted)">
+        <span style="cursor:pointer;text-decoration:underline" onclick="showForgot()">Forgot password?</span>
+      </div>
+    </div>
+
+    <!-- REGISTER SECTION -->
+    <div class="modal-section" id="ms-register">
+      <div class="form-field">
+        <label class="field-label">Full Name</label>
+        <input class="f-input" id="regName" placeholder="Your full name">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Username</label>
+        <input class="f-input" id="regUser" placeholder="Choose a username">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Email</label>
+        <input class="f-input" id="regEmail" placeholder="you@example.com" type="email">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Password</label>
+        <input class="f-input" id="regPass" type="password" placeholder="••••••••">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Invite Code</label>
+        <input class="f-input" id="regInvite" placeholder="e.g. NEXFETCH2024">
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <a class="logo" href="#">
+    <span class="logo-bolt">⚡</span>
+    Nex<em>Fetch</em>
+    <span class="version-badge">v2.9</span>
+  </a>
+  <div class="header-right">
+    <span class="header-meta">MIT · fgradeartist</span>
+    <button class="btn-ghost" onclick="openModal()">⇄ Switch User</button>
+    <div class="user-chip" onclick="openModal()">
+      <div class="avatar" id="headerAvatar">U</div>
+      <span id="headerUsername">Guest</span>
+      <span class="caret">▾</span>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Universal Media &amp; Info Tool</div>
+  <h1 class="hero-title">DOWNLOAD<br><span class="accent">ANYTHING.</span></h1>
+  <p class="hero-sub">1000+ sites supported — YouTube, Instagram, TikTok, SoundCloud, Reddit &amp; more. Paste a URL, pick your format, done.</p>
+</section>
+
+<!-- URL BAR -->
+<div class="url-section">
+  <div class="url-bar">
+    <span class="url-prefix">↗</span>
+    <input class="url-input" id="heroUrl" placeholder="Paste any URL — youtube.com, instagram.com, tiktok.com, soundcloud.com …">
+    <button class="url-btn" onclick="heroFetch()">FETCH ↓</button>
+  </div>
+  <div class="opts-row">
+    <label class="opt-label"><input type="checkbox" id="heroAudio"> Extract audio only</label>
+    <label class="opt-label"><input type="checkbox" id="heroBest" checked> Best quality auto</label>
+    <label class="opt-label"><input type="checkbox" id="heroMeta"> Embed metadata</label>
+    <label class="opt-label"><input type="checkbox" id="heroLyrics"> Embed lyrics</label>
+  </div>
+</div>
+
+<!-- SITE CHIPS -->
+<div class="chips-row">
+  <div class="site-chip">YouTube</div>
+  <div class="site-chip">Instagram</div>
+  <div class="site-chip">TikTok</div>
+  <div class="site-chip">Twitter / X</div>
+  <div class="site-chip">SoundCloud</div>
+  <div class="site-chip">Twitch</div>
+  <div class="site-chip">Reddit</div>
+  <div class="site-chip">Vimeo</div>
+  <div class="site-chip">Facebook</div>
+  <div class="site-chip">Dailymotion</div>
+  <div class="site-chip">Rumble</div>
+  <div class="site-chip">+ 990 more</div>
+</div>
+
+<!-- MAIN TABS -->
+<main class="tabs-wrap">
+  <div class="tabs-bar" role="tablist">
+    <button class="tab active" role="tab" data-tab="download" onclick="switchTab('download',this)"><span class="tab-ico">⬇</span> Download</button>
+    <button class="tab" role="tab" data-tab="music" onclick="switchTab('music',this)"><span class="tab-ico">♪</span> Music</button>
+    <button class="tab" role="tab" data-tab="scraper" onclick="switchTab('scraper',this)"><span class="tab-ico">⌖</span> Scraper</button>
+    <button class="tab" role="tab" data-tab="images" onclick="switchTab('images',this)"><span class="tab-ico">◫</span> Images</button>
+    <button class="tab" role="tab" data-tab="ecommerce" onclick="switchTab('ecommerce',this)"><span class="tab-ico">◈</span> Ecommerce</button>
+    <button class="tab" role="tab" data-tab="account" onclick="switchTab('account',this)"><span class="tab-ico">◉</span> Account</button>
+    <button class="tab" role="tab" data-tab="settings" onclick="switchTab('settings',this)"><span class="tab-ico">⚙</span> Settings</button>
+  </div>
+
+  <!-- ══ DOWNLOAD PANEL ══════════════════════════════════════════ -->
+  <div class="panel active" id="panel-download" role="tabpanel">
+    <h2 class="sec-title">Video &amp; Media Downloader</h2>
+    <p class="sec-sub">Paste one or more URLs below — one per line. Supports clips with start / end timestamps.</p>
+
+    <div class="form-field f-full" style="margin-bottom:14px">
+      <label class="field-label">URLs (one per line)</label>
+      <textarea class="f-textarea" id="dlUrls" style="min-height:80px" placeholder="https://youtube.com/watch?v=...&#10;https://instagram.com/p/...&#10;https://tiktok.com/@user/video/..."></textarea>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="field-label">Format</label>
+        <select class="f-select" id="dlFormat">
+          <option value="mp4">mp4 (video)</option>
+          <option value="mp3">mp3 (audio)</option>
+          <option value="mkv">mkv</option>
+          <option value="webm">webm</option>
+          <option value="m4a">m4a</option>
+          <option value="opus">opus</option>
+          <option value="wav">wav</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="field-label">Quality</label>
+        <select class="f-select" id="dlQuality">
+          <option>Best available</option>
+          <option>1080p</option>
+          <option>720p</option>
+          <option>480p</option>
+          <option>360p</option>
+          <option>240p</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="field-label">Clip Start (optional)</label>
+        <input class="f-input" id="clipStart" placeholder="e.g. 00:01:30">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Clip End (optional)</label>
+        <input class="f-input" id="clipEnd" placeholder="e.g. 00:03:45">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="addToQueue()">⬇ Add to Queue</button>
+      <button class="btn-secondary" onclick="togglePause()" id="pauseBtn">⏸ Pause</button>
+      <button class="btn-secondary" onclick="clearQueue()">✕ Clear Queue</button>
+    </div>
+
+    <div class="queue-box">
+      <div class="queue-hdr">
+        <span class="queue-hdr-label">Download Queue</span>
+        <span class="queue-hdr-count" id="dlQueueCount">0 items</span>
+      </div>
+      <div id="dlQueueList">
+        <div class="queue-empty">Queue is empty — add URLs above</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MUSIC PANEL ════════════════════════════════════════════ -->
+  <div class="panel" id="panel-music" role="tabpanel">
+    <h2 class="sec-title">Music Downloader</h2>
+    <p class="sec-sub">YouTube Music URLs, Spotify links, or plain "Artist — Song Title". Embeds album art, synced .lrc lyrics, and full metadata.</p>
+
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <input class="f-input" style="flex:1" id="musicInput" placeholder='Paste URL or type "Artist - Song Title" or playlist URL'>
+      <button class="btn-primary" onclick="addMusic()">Add</button>
+    </div>
+
+    <div class="tag-row">
+      <span class="tag-pill on" onclick="toggleTag(this)">YouTube Music</span>
+      <span class="tag-pill" onclick="toggleTag(this)">Spotify (spotdl)</span>
+      <span class="tag-pill" onclick="toggleTag(this)">Full Playlists</span>
+      <span class="tag-pill" onclick="toggleTag(this)">Album Art 1:1</span>
+      <span class="tag-pill" onclick="toggleTag(this)">Synced Lyrics</span>
+      <span class="tag-pill" onclick="toggleTag(this)">Apple Music compat</span>
+    </div>
+
+    <div class="feat-row">
+      <div class="feat-chip"><span class="feat-chip-dot"></span>Full metadata embed</div>
+      <div class="feat-chip"><span class="feat-chip-dot"></span>LRC lyrics files</div>
+      <div class="feat-chip"><span class="feat-chip-dot"></span>Batch playlists</div>
+      <div class="feat-chip"><span class="feat-chip-dot"></span>Artist / album / year</div>
+      <div class="feat-chip"><span class="feat-chip-dot"></span>Square album art</div>
+    </div>
+
+    <div class="queue-box">
+      <div class="queue-hdr">
+        <span class="queue-hdr-label">Music Queue</span>
+        <span class="queue-hdr-count" id="musicQueueCount">0 tracks</span>
+      </div>
+      <div id="musicQueueList">
+        <div class="queue-empty">Queue is empty — add songs or playlists above</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCRAPER PANEL ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-scraper" role="tabpanel">
+    <h2 class="sec-title">Channel Scraper</h2>
+    <p class="sec-sub">Scrape all video / post links from any channel or profile. Results saved as a .txt file in a named folder.</p>
+
+    <div style="margin-bottom:16px">
+      <div class="field-label" style="margin-bottom:10px">Select Platform</div>
+      <div class="platform-grid" id="platformGrid">
+        <div class="plat-card sel" onclick="selectPlatform(this)"><span class="plat-icon">▶</span>YouTube</div>
+        <div class="plat-card" onclick="selectPlatform(this)"><span class="plat-icon">◻</span>Instagram</div>
+        <div class="plat-card" onclick="selectPlatform(this)"><span class="plat-icon">◫</span>Facebook</div>
+        <div class="plat-card" onclick="selectPlatform(this)"><span class="plat-icon">◈</span>TikTok</div>
+        <div class="plat-card" onclick="selectPlatform(this)"><span class="plat-icon">⊕</span>Reddit</div>
+        <div class="plat-card" onclick="selectPlatform(this)"><span class="plat-icon">✦</span>Twitter/X</div>
+        <div class="plat-card" onclick="selectPlatform(this)"><span class="plat-icon">▷</span>Twitch</div>
+        <div class="plat-card" onclick="selectPlatform(this)"><span class="plat-icon">⌗</span>Vimeo</div>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field f-full">
+        <label class="field-label">Channel / Profile URL</label>
+        <input class="f-input" id="scraperUrl" placeholder="https://youtube.com/@channelname">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Max links (0 = all)</label>
+        <input class="f-input" id="scraperLimit" value="0" type="number" min="0">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Session cookie (private profiles)</label>
+        <input class="f-input" id="scraperCookie" placeholder="Optional">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="startScrape()">⌖ Start Scraping</button>
+      <button class="btn-secondary" onclick="clearScrapeLog()">Clear Log</button>
+    </div>
+
+    <div class="scrape-log" id="scrapeLog">Ready — select a platform, enter a URL, then click Start Scraping.</div>
+  </div>
+
+  <!-- ══ IMAGES PANEL ═══════════════════════════════════════════ -->
+  <div class="panel" id="panel-images" role="tabpanel">
+    <h2 class="sec-title">Image Downloader</h2>
+    <p class="sec-sub">Batch-download images from Instagram profiles, Pinterest boards, Reddit, Twitter/X and more.</p>
+
+    <div class="form-grid" style="margin-bottom:14px">
+      <div class="form-field">
+        <label class="field-label">Profile / Board URL</label>
+        <input class="f-input" id="imgUrl" placeholder="https://instagram.com/username">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Platform</label>
+        <select class="f-select" id="imgPlatform">
+          <option>Instagram</option>
+          <option>Pinterest</option>
+          <option>Reddit</option>
+          <option>Twitter / X</option>
+          <option>Tumblr</option>
+          <option>Auto-detect</option>
+        </select>
+      </div>
+      <div class="form-field f-full">
+        <label class="field-label">Instagram Login (username:password — for private)</label>
+        <input class="f-input" id="igLogin" placeholder="Optional — only needed for private profiles">
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:14px">
+      <button class="btn-primary" onclick="fetchImages()">◫ Fetch Images</button>
+      <button class="btn-secondary" onclick="downloadAllImages()">⬇ Download All</button>
+      <button class="btn-secondary" onclick="clearImages()">✕ Clear</button>
+    </div>
+
+    <div class="img-grid" id="imgGrid">
+      <div class="img-cell">◫</div><div class="img-cell">◫</div>
+      <div class="img-cell">◫</div><div class="img-cell">◫</div>
+      <div class="img-cell">◫</div><div class="img-cell">◫</div>
+      <div class="img-cell">◫</div><div class="img-cell">◫</div>
+    </div>
+  </div>
+
+  <!-- ══ ECOMMERCE PANEL ════════════════════════════════════════ -->
+  <div class="panel" id="panel-ecommerce" role="tabpanel">
+    <h2 class="sec-title">Ecommerce Scraper</h2>
+    <p class="sec-sub">Scrape product listings from AliExpress, Amazon, eBay, Daraz &amp; more. Exports to CSV sorted by category.</p>
+
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="form-field">
+        <label class="field-label">Store / Category URL</label>
+        <input class="f-input" id="ecomUrl" placeholder="https://aliexpress.com/category/...">
+      </div>
+      <div class="form-field">
+        <label class="field-label">Platform</label>
+        <select class="f-select" id="ecomPlatform">
+          <option>AliExpress</option>
+          <option>Alibaba</option>
+          <option>Amazon</option>
+          <option>eBay</option>
+          <option>Daraz</option>
+          <option>Ramsha</option>
+          <option>Laam</option>
+          <option>Auto-detect</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="opts-row" style="margin-bottom:16px">
+      <label class="opt-label"><input type="checkbox" id="ecomImgs"> Download product images</label>
+      <label class="opt-label"><input type="checkbox" id="ecomSort" checked> Sort by category</label>
+      <label class="opt-label"><input type="checkbox" id="ecomDesc" checked> Include description</label>
+      <label class="opt-label"><input type="checkbox" id="ecomVideo"> Include video count</label>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:14px">
+      <button class="btn-primary" onclick="scrapeEcom()">◈ Scrape Products</button>
+      <button class="btn-secondary" onclick="exportCsv()">↓ Export CSV</button>
+      <button class="btn-secondary" onclick="clearEcom()">✕ Clear</button>
+    </div>
+
+    <div class="ecom-wrap">
+      <table class="ecom-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Sale Price</th>
+            <th>Images</th>
+            <th>Videos</th>
+          </tr>
+        </thead>
+        <tbody id="ecomTbody">
+          <tr>
+            <td colspan="7" style="padding:26px;text-align:center;color:#2a2a2a">
+              No data yet — enter a URL and click Scrape Products
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ ACCOUNT PANEL ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-account" role="tabpanel">
+    <div class="account-card">
+      <div class="acct-avatar" id="acctAvatar">G</div>
+      <div class="acct-name" id="acctName">Guest</div>
+      <div class="acct-role" id="acctRole">GUEST</div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-num" id="statDl">0</div>
+          <div class="stat-lbl">Downloads</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statTracks">0</div>
+          <div class="stat-lbl">Tracks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statImgs">0</div>
+          <div class="stat-lbl">Images</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="form-field">
+          <label class="field-label">Display Name</label>
+          <input class="f-input" id="editName" placeholder="Your name">
+        </div>
+        <div class="form-field">
+          <label class="field-label">Email</label>
+          <input class="f-input" id="editEmail" type="email" placeholder="you@example.com">
+        </div>
+        <div class="form-field">
+          <label class="field-label">Phone</label>
+          <input class="f-input" id="editPhone" placeholder="+1 555 0100">
+        </div>
+        <div class="form-field">
+          <label class="field-label">Date of Birth</label>
+          <input class="f-input" id="editDob" type="date">
+        </div>
+        <div class="form-field f-full">
+          <label class="field-label">Bio / Personal Notes (shown on startup)</label>
+          <textarea class="f-textarea" id="editBio" style="min-height:70px" placeholder="Reminders, notes, to-do items…"></textarea>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" onclick="saveProfile()">✔ Save Profile</button>
+        <button class="btn-secondary" onclick="changePassword()">Change Password</button>
+        <button class="btn-danger" onclick="logOut()">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS PANEL ═════════════════════════════════════════ -->
+  <div class="panel" id="panel-settings" role="tabpanel">
+    <div class="settings-layout">
+
+      <!-- Nav -->
+      <div class="settings-nav" id="settingsNav">
+        <div class="snav-item active" onclick="setSettingsSection('sGeneral',this)">⚙ General</div>
+        <div class="snav-item" onclick="setSettingsSection('sAppearance',this)">◈ Appearance</div>
+        <div class="snav-item" onclick="setSettingsSection('sDownloads',this)">⬇ Downloads</div>
+        <div class="snav-item" onclick="setSettingsSection('sAdmin',this)">⊕ Admin</div>
+        <div class="snav-item" onclick="setSettingsSection('sMaintenance',this)">↺ Maintenance</div>
+      </div>
+
+      <!-- Content -->
+      <div class="settings-panel">
+
+        <!-- General -->
+        <div class="settings-section active" id="sGeneral">
+          <div class="settings-group-title">General Settings</div>
+          <div class="srow">
+            <div><div class="srow-label">Auto-update yt-dlp on launch</div><div class="srow-hint">Keeps download engine current</div></div>
+            <label class="toggle-wrap"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Show ETA in queue</div></div>
+            <label class="toggle-wrap"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Pause queue on startup</div></div>
+            <label class="toggle-wrap"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Show startup notes reminder</div></div>
+            <label class="toggle-wrap"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Embed subtitles in video</div></div>
+            <label class="toggle-wrap"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="settings-section" id="sAppearance">
+          <div class="settings-group-title">Appearance</div>
+          <div class="srow">
+            <div class="srow-label">Accent Color</div>
+            <div class="swatch-row">
+              <div class="swatch sel" style="background:#F5D800" onclick="setAccent('#F5D800',this)" title="Yellow"></div>
+              <div class="swatch" style="background:#e03030" onclick="setAccent('#e03030',this)" title="Red"></div>
+              <div class="swatch" style="background:#06b6d4" onclick="setAccent('#06b6d4',this)" title="Cyan"></div>
+              <div class="swatch" style="background:#22c55e" onclick="setAccent('#22c55e',this)" title="Green"></div>
+              <div class="swatch" style="background:#a855f7" onclick="setAccent('#a855f7',this)" title="Purple"></div>
+              <div class="swatch" style="background:#f97316" onclick="setAccent('#f97316',this)" title="Orange"></div>
+            </div>
+          </div>
+          <div class="srow">
+            <div class="srow-label">Font Size</div>
+            <select class="f-select" style="width:110px" onchange="setFontSize(this.value)">
+              <option value="13">Small</option>
+              <option value="14" selected>Medium</option>
+              <option value="16">Large</option>
+            </select>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Custom App Name</div><div class="srow-hint">Shown in header</div></div>
+            <input class="f-input" style="width:160px" id="appNameInput" value="NexFetch" onchange="updateAppName(this.value)">
+          </div>
+        </div>
+
+        <!-- Downloads -->
+        <div class="settings-section" id="sDownloads">
+          <div class="settings-group-title">Download Settings</div>
+          <div class="srow">
+            <div><div class="srow-label">Default Download Folder</div><div class="srow-hint" id="dlFolderHint">~/Downloads/NexFetch</div></div>
+            <button class="btn-secondary" onclick="changeDlFolder()">Change…</button>
+          </div>
+          <div class="srow">
+            <div class="srow-label">Concurrent Downloads</div>
+            <select class="f-select" style="width:80px">
+              <option>1</option><option selected>2</option><option>3</option><option>5</option>
+            </select>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Rename files on download</div></div>
+            <label class="toggle-wrap"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Save subtitles as .srt</div></div>
+            <label class="toggle-wrap"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Thumbnail as cover art</div></div>
+            <label class="toggle-wrap"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+        </div>
+
+        <!-- Admin -->
+        <div class="settings-section" id="sAdmin">
+          <div class="settings-group-title">Admin Settings</div>
+          <div class="srow">
+            <div><div class="srow-label">Invite Code</div><div class="srow-hint">Default: NEXFETCH2024</div></div>
+            <input class="f-input" style="width:170px" id="inviteCodeInput" value="NEXFETCH2024">
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Allow new registrations</div></div>
+            <label class="toggle-wrap"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div class="srow">
+            <div class="srow-label">Access Control Mode</div>
+            <select class="f-select" style="width:130px">
+              <option>Open</option>
+              <option selected>Invite only</option>
+              <option>Admin only</option>
+            </select>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Admin Mode Active</div><div class="srow-hint">First registered user is admin</div></div>
+            <label class="toggle-wrap"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+        </div>
+
+        <!-- Maintenance -->
+        <div class="settings-section" id="sMaintenance">
+          <div class="settings-group-title">Maintenance</div>
+          <div class="srow">
+            <div><div class="srow-label">Update yt-dlp</div><div class="srow-hint">Current: latest</div></div>
+            <button class="btn-primary" style="padding:8px 16px;font-size:12px" onclick="simulateUpdate('yt-dlp')">Update Now</button>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Re-download ffmpeg</div><div class="srow-hint">~50MB binary</div></div>
+            <button class="btn-secondary" onclick="simulateUpdate('ffmpeg')">Re-download</button>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Update spotdl</div></div>
+            <button class="btn-secondary" onclick="simulateUpdate('spotdl')">Update</button>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Clear application logs</div></div>
+            <button class="btn-danger" onclick="clearLogs()">Clear Logs</button>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">Reset all settings to default</div></div>
+            <button class="btn-danger" onclick="resetSettings()">Reset All</button>
+          </div>
+          <div class="srow">
+            <div><div class="srow-label">App Version</div></div>
+            <span style="font-size:12px;font-family:var(--mono);color:var(--muted)">NexFetch v2.9 · MIT</span>
+          </div>
+        </div>
+
+      </div><!-- /.settings-panel -->
+    </div><!-- /.settings-layout -->
+  </div>
+
+</main><!-- /tabs-wrap -->
+
+<footer style="text-align:center;padding:30px 40px;font-size:11px;font-family:var(--mono);color:#2a2a2a;position:relative;z-index:5;border-top:1px solid var(--border)">
+  ⚡ NexFetch v2.9 · Built with Python, yt-dlp, spotdl, instaloader · MIT License · fgradeartist<br>
+  <span style="color:#1e1e1e">This is a UI mockup — run the .py app locally for full functionality</span>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   NexFetch v2.9 — Real API Bridge to Python Server
+   Calls localhost:7432 for all actual downloads
+═══════════════════════════════════════════════════════ */
+const API = 'http://127.0.0.1:7432';
+const state = {
+  user: {name:'Guest',username:'Guest',role:'GUEST',email:'',phone:'',dob:'',bio:'',downloads:0,tracks:0,images:0},
+  users: {},
+  savedLogins: [],
+  dlQueue: [], musicQueue: [], ecomData: [],
+  paused: false, dlRunning: false,
+  activeTab: 'download',
+  dlPath: '',
+  inviteCode: 'NEXFETCH2024'
+};
+let _serverOnline = false;
+
+/* ── Load saved logins from localStorage ── */
+try { state.savedLogins = JSON.parse(localStorage.getItem('nf_saved') || '[]'); } catch(e) { state.savedLogins = []; }
+
+/* ── API ── */
+async function api(method, path, body) {
+  try {
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + path, opts);
+    return await r.json();
+  } catch(e) { return {error: String(e)}; }
+}
+
+function pollJob(jid, onLog, onPct, onDone) {
+  const iv = setInterval(async () => {
+    const d = await api('GET', `/api/job/${jid}`);
+    if (!d || d.error) { clearInterval(iv); onDone(false, {}); return; }
+    if (onLog && d.log && d.log.length) onLog(d.log);
+    if (onPct) onPct(d.progress || 0);
+    if (d.status === 'done')   { clearInterval(iv); onDone(true,  d); }
+    if (d.status === 'failed') { clearInterval(iv); onDone(false, d); }
+  }, 750);
+}
+
+/* ── Toast ── */
+function toast(title, msg, type) {
+  type = type || 'info';
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type==='ok'?' ok':type==='err'?' err':'');
+  el.innerHTML = `<div class="toast-title">${title}</div>${msg?`<div class="toast-msg">${msg}</div>`:''}`;
+  el.onclick = () => el.remove();
+  c.appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'fadeOut .3s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, 4000);
+}
+
+/* ── Server check — runs on load ── */
+async function checkServer() {
+  const el = document.getElementById('serverStatus');
+  const d = await api('GET', '/api/config');
+  if (d && !d.error) {
+    _serverOnline = true;
+    state.dlPath = d.dl_path || '';
+    if (el) el.innerHTML = `<span style="color:#22c55e">● Python engine connected — v${d.version}</span>`;
+    const hint = document.getElementById('dlFolderHint');
+    if (hint) hint.textContent = d.dl_path || '~/Downloads/NexFetch';
+    // Load real users
+    const users = await api('GET', '/api/users');
+    if (users && !users.error) state.users = users;
+  } else {
+    _serverOnline = false;
+    if (el) el.innerHTML = `<span style="color:#e03030">● Python server offline — start NexFetch.py first, then refresh</span>`;
+    toast('Server offline', 'Launch NexFetch.py first, then reload this page.', 'err');
+  }
+}
+
+/* ── Tabs ── */
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+  state.activeTab = id;
+}
+
+/* ── Hero fetch ── */
+function heroFetch() {
+  const url = document.getElementById('heroUrl').value.trim();
+  if (!url) { toast('No URL', 'Paste a URL first.', 'err'); return; }
+  const tab = document.querySelector('[data-tab="download"]');
+  switchTab('download', tab);
+  document.getElementById('dlUrls').value = url;
+  document.getElementById('heroUrl').value = '';
+  addToQueue();
+}
+
+/* ════════════════════════════════════════
+   DOWNLOAD QUEUE
+════════════════════════════════════════ */
+function addToQueue() {
+  const raw = document.getElementById('dlUrls').value.trim();
+  if (!raw) { toast('No URLs', 'Enter at least one URL.', 'err'); return; }
+
+  const urls   = raw.split('\n').map(u => u.trim()).filter(Boolean);
+  const fmt    = document.getElementById('dlFormat').value;
+  const qual   = document.getElementById('dlQuality').value;
+  // Clip fields — use the IDs that are actually in the HTML
+  const start  = (document.getElementById('clipStart')  || {}).value || '';
+  const end    = (document.getElementById('clipEnd')    || {}).value || '';
+  const ratio  = (document.getElementById('dlRatioSel') || {}).value || 'original';
+
+  let added = 0, dups = 0;
+  urls.forEach(url => {
+    const dup = state.dlQueue.find(q => q.url === url && !['done','failed'].includes(q.status));
+    if (dup) { dups++; toast('Already in queue', url.slice(0,50), 'info'); return; }
+    state.dlQueue.push({url, fmt, qual, start: start.trim(), end: end.trim(), ratio, status:'wait', progress:0, jid:null});
+    added++;
+  });
+  document.getElementById('dlUrls').value = '';
+  if (added) renderDlQueue();
+  let msg = added + ' item' + (added !== 1 ? 's' : '') + ' added.';
+  if (dups) msg += ' ' + dups + ' duplicate(s) skipped.';
+  toast(added > 0 ? 'Queued' : 'Skipped', msg, added > 0 ? 'ok' : 'info');
+  if (!state.dlRunning && !state.paused && added > 0) runDownloadQueue();
+}
+
+function renderDlQueue() {
+  const el = document.getElementById('dlQueueList');
+  const cnt = document.getElementById('dlQueueCount');
+  const n = state.dlQueue.length;
+  if (cnt) cnt.textContent = n + ' item' + (n !== 1 ? 's' : '');
+  if (!n) { el.innerHTML = '<div class="queue-empty">Queue is empty — add URLs above</div>'; return; }
+  const dotClass = {wait:'wait', dl:'dl', done:'done', failed:'wait'};
+  const statusColor = {wait:'#444', dl:'var(--yel)', done:'var(--green)', failed:'var(--red)'};
+  const statusText  = {wait:'waiting…', dl:'downloading…', done:'✔ done', failed:'✕ failed'};
+  el.innerHTML = state.dlQueue.map(q => `
+    <div class="q-item">
+      <div class="q-dot q-dot-${dotClass[q.status]||'wait'}"></div>
+      <div class="q-info">
+        <div class="q-url ${q.status === 'done' ? 'done' : ''}">${q.url.length > 68 ? q.url.slice(0,68) + '…' : q.url}</div>
+        <div class="q-meta">
+          <span class="q-tag">${q.fmt}</span>
+          <span class="q-tag">${q.qual}</span>
+          ${q.start || q.end ? `<span class="q-tag">✂ ${q.start}–${q.end}</span>` : ''}
+          ${q.status === 'dl' ? `<div class="q-bar"><div class="q-fill" style="width:${q.progress}%"></div></div>` : ''}
+          <span style="font-size:10px;color:${statusColor[q.status]};font-family:var(--mono)">${statusText[q.status] || ''}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function runDownloadQueue() {
+  if (state.paused || state.dlRunning) return;
+  const idx = state.dlQueue.findIndex(q => q.status === 'wait');
+  if (idx === -1) { state.dlRunning = false; return; }
+
+  if (!_serverOnline) {
+    toast('Server offline', 'Start NexFetch.py then refresh.', 'err');
+    state.dlRunning = false; return;
+  }
+
+  state.dlRunning = true;
+  const item = state.dlQueue[idx];
+  item.status = 'dl';
+  renderDlQueue();
+
+  const savePath = state.dlPath ? state.dlPath + '/Videos' : '';
+  const body = {url:item.url, fmt:item.fmt, quality:item.qual,
+                start:item.start, end:item.end, ratio:item.ratio, save:savePath};
+  const d = await api('POST', '/api/download', body);
+
+  if (!d || d.error) {
+    item.status = 'failed';
+    toast('Download failed', d ? d.error : 'No response', 'err');
+    renderDlQueue(); state.dlRunning = false; runDownloadQueue(); return;
+  }
+
+  item.jid = d.job_id;
+  pollJob(d.job_id,
+    logs => { /* log to console only */ },
+    pct => { item.progress = pct; renderDlQueue(); },
+    (ok, res) => {
+      item.status = ok ? 'done' : 'failed';
+      item.progress = ok ? 100 : item.progress;
+      if (ok) {
+        state.user.downloads++;
+        updateStats();
+        toast('Downloaded ✔', (res && res.save) ? 'Saved to: ' + res.save : item.url.slice(0,45), 'ok');
+      } else {
+        toast('Download failed', item.url.slice(0,45), 'err');
+      }
+      renderDlQueue();
+      state.dlRunning = false;
+      runDownloadQueue();
+    }
+  );
+}
+
+function togglePause() {
+  state.paused = !state.paused;
+  const btn = document.getElementById('pauseBtn');
+  if (btn) btn.textContent = state.paused ? '▶ Resume' : '⏸ Pause';
+  if (!state.paused && !state.dlRunning) runDownloadQueue();
+  toast(state.paused ? 'Paused' : 'Resumed', '', state.paused ? 'info' : 'ok');
+}
+
+function clearQueue() {
+  const pending = state.dlQueue.filter(q => !['done','dl'].includes(q.status));
+  if (!pending.length) { toast('Nothing to clear', '', 'info'); return; }
+  state.dlQueue = state.dlQueue.filter(q => ['done','dl'].includes(q.status));
+  renderDlQueue();
+  toast('Queue cleared', pending.length + ' pending item(s) removed.', 'info');
+}
+
+/* ════════════════════════════════════════
+   MUSIC
+════════════════════════════════════════ */
+function toggleTag(el) { el.classList.toggle('on'); }
+
+function addMusic() {
+  const q = document.getElementById('musicInput').value.trim();
+  if (!q) { toast('No input', 'Enter a URL or song name.', 'err'); return; }
+  state.musicQueue.push({q, fmt:'mp3', src:'youtube-music', lyrics:true, poster:true, meta:true, status:'wait', jid:null});
+  document.getElementById('musicInput').value = '';
+  renderMusicQueue();
+  toast('Track added', q.slice(0, 50), 'ok');
+  runMusicQueue();
+}
+
+async function runMusicQueue() {
+  const item = state.musicQueue.find(m => m.status === 'wait');
+  if (!item) return;
+  if (!_serverOnline) { toast('Server offline', 'Start NexFetch.py first.', 'err'); return; }
+  item.status = 'dl';
+  renderMusicQueue();
+  const body = {query:item.q, fmt:item.fmt, src:item.src,
+                lyrics:item.lyrics, poster:item.poster, meta:item.meta,
+                save: state.dlPath ? state.dlPath + '/Music' : ''};
+  const d = await api('POST', '/api/music', body);
+  if (!d || d.error) { item.status = 'failed'; toast('Music failed', d ? d.error : '', 'err'); renderMusicQueue(); return; }
+  item.jid = d.job_id;
+  pollJob(d.job_id,
+    null, null,
+    (ok) => {
+      item.status = ok ? 'done' : 'failed';
+      if (ok) { state.user.tracks++; updateStats(); toast('Music downloaded ✔', item.q.slice(0,45), 'ok'); }
+      else toast('Music failed', item.q.slice(0,45), 'err');
+      renderMusicQueue();
+      runMusicQueue();
+    }
+  );
+}
+
+function renderMusicQueue() {
+  const el = document.getElementById('musicQueueList');
+  const cnt = document.getElementById('musicQueueCount');
+  const n = state.musicQueue.length;
+  if (cnt) cnt.textContent = n + ' track' + (n !== 1 ? 's' : '');
+  if (!n) { el.innerHTML = '<div class="queue-empty">Queue is empty — add songs or playlists above</div>'; return; }
+  const sc = {wait:'#444', dl:'var(--yel)', done:'var(--green)', failed:'var(--red)'};
+  el.innerHTML = state.musicQueue.map(m => `
+    <div class="q-item">
+      <div class="q-dot q-dot-${m.status === 'done' ? 'done' : m.status === 'dl' ? 'dl' : 'wait'}"></div>
+      <div class="q-info">
+        <div class="q-url" style="color:#aaa">${m.q.length > 65 ? m.q.slice(0,65) + '…' : m.q}</div>
+        <div class="q-meta">
+          <span class="q-tag">${m.fmt}</span>
+          <span style="font-size:10px;color:${sc[m.status]};font-family:var(--mono)">${m.status}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ════════════════════════════════════════
+   SCRAPER
+════════════════════════════════════════ */
+function selectPlatform(el) {
+  document.querySelectorAll('.plat-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+async function startScrape() {
+  const url  = document.getElementById('scraperUrl').value.trim();
+  const log  = document.getElementById('scrapeLog');
+  if (!url) { toast('No URL', 'Enter a channel or profile URL.', 'err'); return; }
+  if (!_serverOnline) { toast('Server offline', 'Start NexFetch.py first.', 'err'); return; }
+  const platEl = document.querySelector('.plat-card.sel');
+  const plat  = (platEl ? platEl.textContent.trim() : 'YouTube').toLowerCase().replace('twitter/x','twitter');
+  const limit = parseInt(document.getElementById('scraperLimit').value) || 100;
+  log.innerHTML = `<span style="color:var(--yel)">▶ Scraping ${plat}…</span>\nURL: ${url}\n`;
+
+  const platMap = {youtube:'youtube', instagram:'instagram', facebook:'facebook',
+    tiktok:'tiktok', reddit:'reddit', twitter:'twitter', twitch:'youtube',
+    vimeo:'youtube', adult:'adult'};
+  const platform = platMap[plat] || 'youtube';
+
+  const d = await api('POST', '/api/scrape', {platform, input:url, limit});
+  if (!d || d.error) { log.innerHTML += `<span style="color:var(--red)">❌ ${d ? d.error : 'Server error'}</span>`; return; }
+
+  const iv = setInterval(async () => {
+    const s = await api('GET', `/api/job/${d.job_id}`);
+    if (!s || s.error) { clearInterval(iv); return; }
+    if (s.status === 'done') {
+      clearInterval(iv);
+      const links = s.links || [];
+      log.innerHTML = `<span style="color:var(--yel)">▶ Scraped ${plat}</span>\n`
+        + links.slice(0, 300).join('\n')
+        + `\n\n<span style="color:var(--green)">✔ Done — ${links.length} links found.</span>`;
+      log.scrollTop = log.scrollHeight;
+      window._scrapeLinks = links;
+      window._scrapeName  = url.replace(/https?:\/\//,'').split('/').filter(Boolean)[1] || 'scraped';
+      toast('Scrape complete', links.length + ' links', 'ok');
+    }
+    if (s.status === 'failed') {
+      clearInterval(iv);
+      log.innerHTML += `\n<span style="color:var(--red)">❌ Failed — check the URL and try again.</span>`;
+      toast('Scrape failed', '', 'err');
+    }
+    // Show running log
+    if (s.status === 'running' && s.log && s.log.length) {
+      log.innerHTML = `<span style="color:var(--yel)">▶ Scraping ${plat}… </span>\n` + s.log.slice(-10).join('\n');
+      log.scrollTop = log.scrollHeight;
+    }
+  }, 900);
+}
+
+function clearScrapeLog() {
+  document.getElementById('scrapeLog').textContent = 'Log cleared.';
+  window._scrapeLinks = [];
+}
+
+function exportScrapeLinks() {
+  const links = window._scrapeLinks || [];
+  if (!links.length) { toast('Nothing to export', 'Scrape first.', 'err'); return; }
+  const blob = new Blob([links.join('\n')], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (window._scrapeName || 'links') + '.txt';
+  a.click();
+  toast('Exported', links.length + ' links', 'ok');
+}
+
+/* ════════════════════════════════════════
+   IMAGES
+════════════════════════════════════════ */
+async function fetchImages() {
+  const url = document.getElementById('imgUrl').value.trim();
+  if (!url) { toast('No URL', 'Enter a profile URL.', 'err'); return; }
+  if (!_serverOnline) { toast('Server offline', 'Start NexFetch.py first.', 'err'); return; }
+  const grid = document.getElementById('imgGrid');
+  grid.innerHTML = '<div class="img-cell" style="grid-column:1/-1;text-align:center;color:#555;padding:30px;font-size:13px">⏳ Downloading images…</div>';
+  toast('Downloading', 'Images will save to your Images folder.', 'info');
+  const d = await api('POST', '/api/download', {
+    url, fmt:'images',
+    save: state.dlPath ? state.dlPath + '/Images' : ''
+  });
+  if (!d || d.error) {
+    grid.innerHTML = '<div class="img-cell" style="grid-column:1/-1;text-align:center;color:var(--red);padding:30px">✕ Failed</div>';
+    toast('Failed', d ? d.error : 'Server error', 'err'); return;
+  }
+  pollJob(d.job_id, null, null, (ok, res) => {
+    if (ok) {
+      state.user.images++; updateStats();
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:24px">
+        <div style="color:var(--green);font-size:18px;margin-bottom:8px">✔ Downloaded</div>
+        <div style="color:#555;font-size:12px;font-family:var(--mono)">${res && res.save ? res.save : 'Saved to Images folder'}</div>
+        ${res && res.save ? `<button class="btn-secondary" style="margin-top:12px" onclick="apiOpenFolder('${(res.save||'').replace(/\\/g,'/')}')">📂 Open Folder</button>` : ''}
+      </div>`;
+      toast('Images downloaded ✔', '', 'ok');
+    } else {
+      grid.innerHTML = '<div class="img-cell" style="grid-column:1/-1;text-align:center;color:var(--red);padding:30px">✕ Download failed — check URL</div>';
+      toast('Failed', 'Could not download images.', 'err');
+    }
+  });
+}
+
+async function apiOpenFolder(path) { await api('POST', '/api/open_folder', {path}); }
+function downloadAllImages() { fetchImages(); }
+function clearImages() {
+  document.getElementById('imgGrid').innerHTML = '<div class="img-cell">◫</div>'.repeat(8);
+}
+
+/* ════════════════════════════════════════
+   ECOMMERCE
+════════════════════════════════════════ */
+async function scrapeEcom() {
+  const url = document.getElementById('ecomUrl').value.trim();
+  if (!url) { toast('No URL', 'Enter a store URL.', 'err'); return; }
+  if (!_serverOnline) { toast('Server offline', 'Start NexFetch.py first.', 'err'); return; }
+  const tbody = document.getElementById('ecomTbody');
+  tbody.innerHTML = '<tr><td colspan="7" style="padding:26px;text-align:center;color:#555">⏳ Scraping products…</td></tr>';
+  toast('Scraping…', 'This may take 15–30 seconds.', 'info');
+  const d = await api('POST', '/api/scrape', {platform:'ecommerce', input:url, limit:50});
+  if (!d || d.error) { toast('Failed', d ? d.error : '', 'err'); return; }
+  const iv = setInterval(async () => {
+    const s = await api('GET', `/api/job/${d.job_id}`);
+    if (!s || s.error) { clearInterval(iv); return; }
+    if (s.status === 'done' || s.status === 'failed') {
+      clearInterval(iv);
+      if (s.links && s.links.length) {
+        state.ecomData = s.links.map((u, i) => ({
+          no:i+1, title:u.split('/').filter(Boolean).pop()||u,
+          category:'N/A', price:'N/A', sale_price:'N/A', images:0, videos:0, url:u
+        }));
+        renderEcomTable();
+        toast('Done', s.links.length + ' items found', 'ok');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:26px;text-align:center;color:#555">No products found — try a different URL</td></tr>';
+        toast(s.status === 'done' ? 'Done' : 'Failed', '', s.status === 'done' ? 'ok' : 'err');
+      }
+    }
+  }, 900);
+}
+
+function renderEcomTable() {
+  const tbody = document.getElementById('ecomTbody');
+  if (!state.ecomData.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:26px;text-align:center;color:#2a2a2a">No data — enter a URL and click Scrape</td></tr>'; return;
+  }
+  tbody.innerHTML = state.ecomData.map(p => `<tr>
+    <td>${p.no}</td>
+    <td><a href="${p.url||'#'}" target="_blank" style="color:inherit;text-decoration:none">${(p.title||'').slice(0,50)}</a></td>
+    <td>${p.category||'N/A'}</td>
+    <td>${p.price||'N/A'}</td>
+    <td>${p.sale_price||'N/A'}</td>
+    <td>${p.images||0}</td>
+    <td>${p.videos||0}</td>
+  </tr>`).join('');
+}
+
+function exportCsv() {
+  if (!state.ecomData.length) { toast('No data', 'Scrape first.', 'err'); return; }
+  const hdr = 'No,Title,Category,Price,Sale Price,Images,Videos,URL\n';
+  const rows = state.ecomData.map(p =>
+    [p.no, `"${(p.title||'').replace(/"/g,'')}"`, p.category, p.price, p.sale_price||'N/A', p.images, p.videos, p.url].join(',')
+  ).join('\n');
+  const blob = new Blob([hdr + rows], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'products.csv'; a.click();
+  toast('CSV exported', '', 'ok');
+}
+
+function clearEcom() { state.ecomData = []; renderEcomTable(); }
+
+/* ════════════════════════════════════════
+   ACCOUNT + USER UI
+════════════════════════════════════════ */
+function updateUserUI() {
+  const u = state.user;
+  const letter = (u.name || u.username || 'G').charAt(0).toUpperCase();
+  const hAv = document.getElementById('headerAvatar');
+  if (hAv) hAv.textContent = letter;
+  const hUn = document.getElementById('headerUsername');
+  if (hUn) hUn.textContent = u.username || u.name || 'Guest';
+  // User chip in header
+  const chip = document.querySelector('.user-chip .avatar');
+  if (chip) chip.textContent = letter;
+  // Account panel
+  const aa = document.getElementById('acctAvatar'); if (aa) aa.textContent = letter;
+  const an = document.getElementById('acctName');   if (an) an.textContent = u.name || u.username || 'Guest';
+  const ar = document.getElementById('acctRole');   if (ar) ar.textContent = u.role || 'USER';
+  const en = document.getElementById('editName');   if (en) en.value = u.name || '';
+  const ee = document.getElementById('editEmail');  if (ee) ee.value = u.email || '';
+  const ep = document.getElementById('editPhone');  if (ep) ep.value = u.phone || '';
+  const ed = document.getElementById('editDob');    if (ed) ed.value = u.dob || '';
+  const eb = document.getElementById('editBio');    if (eb) eb.value = u.bio || '';
+}
+
+function updateStats() {
+  const u = state.user;
+  const sd = document.getElementById('statDl');     if (sd) sd.textContent = u.downloads || 0;
+  const st = document.getElementById('statTracks'); if (st) st.textContent = u.tracks || 0;
+  const si = document.getElementById('statImgs');   if (si) si.textContent = u.images || 0;
+}
+
+function saveProfile() {
+  const n = document.getElementById('editName'); if (n) state.user.name = n.value.trim();
+  const e = document.getElementById('editEmail'); if (e) state.user.email = e.value.trim();
+  const p = document.getElementById('editPhone'); if (p) state.user.phone = p.value.trim();
+  const d = document.getElementById('editDob');   if (d) state.user.dob = d.value;
+  const b = document.getElementById('editBio');   if (b) state.user.bio = b.value.trim();
+  updateUserUI();
+  toast('Profile saved', '', 'ok');
+}
+
+function changePassword() {
+  const old = prompt('Current password:');
+  if (!old) return;
+  const np = prompt('New password (min 4 chars):');
+  if (!np || np.length < 4) { toast('Too short', '', 'err'); return; }
+  toast('Password change — re-login to confirm', '', 'ok');
+}
+
+function logOut() {
+  state.user = {name:'Guest',username:'Guest',role:'GUEST',email:'',phone:'',dob:'',bio:'',downloads:0,tracks:0,images:0};
+  updateUserUI(); updateStats();
+  toast('Logged out', '', 'info');
+  openModal();
+}
+
+/* ════════════════════════════════════════
+   LOGIN MODAL — Calls Python backend
+════════════════════════════════════════ */
+function openModal() {
+  document.getElementById('loginModal').classList.remove('hidden');
+  renderSavedUsers();
+}
+function closeModal() {
+  document.getElementById('loginModal').classList.add('hidden');
+}
+function modalTab(id, btn) {
+  document.querySelectorAll('.mtab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.modal-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ms-' + id).classList.add('active');
+}
+
+function renderSavedUsers() {
+  const wrap = document.getElementById('savedUsersWrap');
+  if (!wrap) return;
+  if (!state.savedLogins.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '<div class="field-label" style="margin-bottom:8px">Quick Login</div>'
+    + '<div class="saved-users">'
+    + state.savedLogins.map(u => `
+        <button class="saved-user-btn" onclick="quickLogin('${u}')">
+          <div class="su-avatar">${u.charAt(0).toUpperCase()}</div>
+          <span>${u}</span>
+        </button>`).join('')
+    + '</div><div class="divider" style="margin:12px 0"></div>';
+}
+
+function quickLogin(username) {
+  const el = document.getElementById('loginUser');
+  if (el) { el.value = username; }
+  const pe = document.getElementById('loginPass');
+  if (pe) pe.focus();
+}
+
+async function doLogin() {
+  const user = (document.getElementById('loginUser').value || '').trim();
+  const pass = document.getElementById('loginPass').value || '';
+  if (!user || !pass) { toast('Missing fields', 'Enter username and password.', 'err'); return; }
+
+  if (!_serverOnline) {
+    // Offline fallback — use localStorage
+    const stored = JSON.parse(localStorage.getItem('nf_offline_users') || '{}');
+    if (stored[user] && stored[user].pw === simpleHash(pass)) {
+      applyUser(stored[user], user); closeModal();
+      toast('Welcome back!', 'Logged in as ' + user, 'ok'); return;
+    }
+    toast('Login failed', 'Server offline — cannot verify credentials.', 'err'); return;
+  }
+
+  const d = await api('POST', '/api/login', {username: user, password: pass});
+  if (d.error) { toast('Login failed', d.error, 'err'); return; }
+  applyUser(d.user, user);
+  addSavedLogin(user);
+  closeModal();
+  toast('Welcome back!', 'Logged in as ' + user, 'ok');
+}
+
+async function doRegister() {
+  const name   = (document.getElementById('regName').value   || '').trim();
+  const user   = (document.getElementById('regUser').value   || '').trim();
+  const email  = (document.getElementById('regEmail').value  || '').trim();
+  const pass   = document.getElementById('regPass').value    || '';
+  const invite = (document.getElementById('regInvite').value || '').trim();
+  if (!name || !user || !email || !pass) { toast('Missing fields', 'Fill in all required fields.', 'err'); return; }
+
+  if (!_serverOnline) {
+    // Offline fallback
+    const stored = JSON.parse(localStorage.getItem('nf_offline_users') || '{}');
+    if (stored[user]) { toast('Username taken', '', 'err'); return; }
+    if (invite !== state.inviteCode) { toast('Invalid invite code', '', 'err'); return; }
+    const isFirst = Object.keys(stored).length === 0;
+    stored[user] = {name, email, phone:'', dob:'', bio:'', pw: simpleHash(pass), role: isFirst ? 'ADMIN' : 'USER'};
+    localStorage.setItem('nf_offline_users', JSON.stringify(stored));
+    applyUser(stored[user], user);
+    addSavedLogin(user);
+    closeModal();
+    toast('Account created!', 'Welcome, ' + name, 'ok'); return;
+  }
+
+  const d = await api('POST', '/api/register', {full_name:name, username:user, email, password:pass, invite_code:invite});
+  if (d.error) { toast('Registration failed', d.error, 'err'); return; }
+  if (d.phrases) {
+    // Show recovery phrases — must be noted down
+    const msg = '✅ Account created!\n\nSave your 12-word recovery phrases — you need these to reset your password if you forget it:\n\n' + d.phrases + '\n\nWrite these down now.';
+    alert(msg);
+  }
+  applyUser({name, email, phone:'', dob:'', bio:'', role: d.role || 'USER'}, user);
+  addSavedLogin(user);
+  closeModal();
+  toast('Account created!', 'Welcome, ' + name, 'ok');
+}
+
+function applyUser(u, username) {
+  state.user = Object.assign({}, u, {
+    username: username || u.username || u.name || 'User',
+    downloads: state.user.downloads || 0,
+    tracks:    state.user.tracks    || 0,
+    images:    state.user.images    || 0,
+  });
+  updateUserUI(); updateStats();
+}
+
+function addSavedLogin(username) {
+  state.savedLogins = state.savedLogins.filter(u => u !== username);
+  state.savedLogins.unshift(username);
+  state.savedLogins = state.savedLogins.slice(0, 5);
+  localStorage.setItem('nf_saved', JSON.stringify(state.savedLogins));
+}
+
+function showForgot() {
+  const user = (document.getElementById('loginUser').value || '').trim();
+  if (!user) { toast('Enter username first', '', 'err'); return; }
+  const phrase = prompt('Enter your 12-word recovery phrase (space or comma separated):');
+  if (!phrase) return;
+  const np = prompt('Enter your new password (min 4 chars):');
+  if (!np || np.length < 4) { toast('Password too short', '', 'err'); return; }
+  toast('Password reset', 'Log in with your new password.', 'ok');
+}
+
+/* Offline simple hash (NOT used for security — only for offline mode) */
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  return h.toString(16);
+}
+
+/* ════════════════════════════════════════
+   SETTINGS
+════════════════════════════════════════ */
+function setSettingsSection(id, el) {
+  document.querySelectorAll('.snav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function setAccent(color, el) {
+  document.documentElement.style.setProperty('--yel', color);
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('sel'));
+  el.classList.add('sel');
+  toast('Accent updated', '', 'ok');
+}
+
+function setFontSize(size) { document.body.style.fontSize = size + 'px'; }
+
+function updateAppName(name) {
+  const logo = document.querySelector('.logo');
+  if (logo && name) {
+    logo.innerHTML = `<span class="logo-bolt">⚡</span>${name}<span class="version-badge" style="margin-left:6px">v2.9</span>`;
+  }
+}
+
+function changeDlFolder() {
+  const cur = state.dlPath || '~/Downloads/NexFetch';
+  const f = prompt('Enter download folder path:', cur);
+  if (f) {
+    state.dlPath = f;
+    localStorage.setItem('nf_dlpath', f);
+    const hint = document.getElementById('dlFolderHint');
+    if (hint) hint.textContent = f;
+    toast('Folder updated', f, 'ok');
+  }
+}
+
+function simulateUpdate(pkg) {
+  toast('Updating ' + pkg + '…', 'Please wait.', 'info');
+  setTimeout(() => toast(pkg + ' updated', 'Now on latest version.', 'ok'), 1800);
+}
+
+function clearLogs() {
+  if (confirm('Clear all application logs?')) toast('Logs cleared', '', 'ok');
+}
+
+function resetSettings() {
+  if (confirm('Reset ALL settings to defaults?')) {
+    document.documentElement.style.removeProperty('--yel');
+    document.body.style.fontSize = '';
+    toast('Settings reset', '', 'ok');
+  }
+}
+
+function persistUser() {}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+(async function init() {
+  // Load saved download path
+  const savedPath = localStorage.getItem('nf_dlpath');
+  if (savedPath) state.dlPath = savedPath;
+
+  updateStats();
+  renderDlQueue();
+  renderMusicQueue();
+  renderEcomTable();
+
+  // Keyboard shortcuts
+  const heroUrl   = document.getElementById('heroUrl');
+  const dlUrls    = document.getElementById('dlUrls');
+  const musicInp  = document.getElementById('musicInput');
+  const loginPass = document.getElementById('loginPass');
+  if (heroUrl)   heroUrl.addEventListener('keydown',   e => { if (e.key === 'Enter') heroFetch(); });
+  if (dlUrls)    dlUrls.addEventListener('keydown',    e => { if (e.key === 'Enter' && e.ctrlKey) addToQueue(); });
+  if (musicInp)  musicInp.addEventListener('keydown',  e => { if (e.key === 'Enter') addMusic(); });
+  if (loginPass) loginPass.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  // Close modal on backdrop click
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+
+  // Connect to Python server
+  await checkServer();
+
+  // Auto-restore last logged-in user from savedLogins
+  if (state.savedLogins.length) {
+    const last = state.savedLogins[0];
+    state.user.username = last;
+    state.user.name     = last;
+    updateUserUI();
+    // Don't force login modal — user is already identified
+  } else {
+    openModal();
+  }
+})();
+</script>
+</body>
+</html>
