@@ -1,0 +1,26 @@
+# User data
+userdata/
+users.json
+saved_logins.json
+config.json
+.setup_complete
+
+# Downloads
+*.mp4
+*.mp3
+*.zip
+*.jpg
+*.png
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
